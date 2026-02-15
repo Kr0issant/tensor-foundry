@@ -1,5 +1,6 @@
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import make_scorer, mean_absolute_error
+from sklearn.base import clone
 
 class TernaryHyperparameterOptimizer:
     """
@@ -33,9 +34,12 @@ class TernaryHyperparameterOptimizer:
         self.X = X
         self.y = y
         self.X_train, self.X_valid, self.y_train, self.y_valid = train_test_split(X, y, test_size=split)
+
+        self.is_pipeline = hasattr(model, 'steps')
+        prefix = "model__" if self.is_pipeline else ""
         
-        self.ranges = hyperparameters_ranges_dict
-        self.importance_order = hyperparameter_importance_order
+        self.ranges = {prefix + hp: v for hp, v in hyperparameters_ranges_dict.items()}
+        self.importance_order = [prefix + hp for hp in hyperparameter_importance_order]
 
         self.error = error_function
         self.scorer = make_scorer(error_function, greater_is_better=False)
@@ -113,7 +117,11 @@ class TernaryHyperparameterOptimizer:
                 Lower values indicate better performance.
         """
 
-        model = self.model(**hyperparameters, random_state=0)
+        model = clone(self.model)
+        model.set_params(**hyperparameters)
+
+        prefix = "model__" if self.is_pipeline else ""
+        model.set_params(**{prefix + "random_state": 0})
 
         if cv:
             errors = -1 * cross_val_score(model, self.X, self.y, cv=folds, scoring=self.scorer)
