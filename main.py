@@ -21,13 +21,13 @@ def main():
     hidden_layers = [
         # (256, Activation.SIGMOID),
         (128, activation.Sigmoid),
-        (32, activation.Sigmoid)
+        (32, activation.Softmax)
     ]
     output_size = 10
 
     epochs = 16
     learning_rate = 1e-1
-    loss_func = metrics.LogLoss
+    loss_func = metrics.CategoricalCrossEntropy
     optimizer = optimizer.MiniBatchSGD
     batch_size = 64
 

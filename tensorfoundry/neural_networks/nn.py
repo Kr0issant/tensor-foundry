@@ -42,9 +42,18 @@ class NeuralNetwork:
         num_layers = len(self.layers)
         m = target.shape[0]
 
-        d_a = loss_func.derivative(target, self.posts[-1])
+        if self.layers[-1][2] == activation.Softmax and loss_func == metrics.CategoricalCrossEntropy:
+            d_z = self.posts[-1] - target
+        else:
+            d_a = loss_func.derivative(target, self.posts[-1])
+            d_z = d_a * self.layers[-1][2].derivative(self.pres[-1])
 
-        for i in range(num_layers - 1, -1, -1):
+        self.d_weights[-1] = (self.posts[-2].T @ d_z) / m
+        self.d_biases[-1] = np.sum(d_z, axis=0, keepdims=True) / m
+        
+        d_a = d_z @ self.weights[-1].T
+
+        for i in range(num_layers - 2, -1, -1):
             d_z = d_a * self.layers[i][2].derivative(self.pres[i])
 
             self.d_weights[i] = (self.posts[i].T @ d_z) / m

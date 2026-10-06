@@ -1,4 +1,5 @@
 from .base import Base
 
 from .mse import MeanSquaredError
-from .log_loss import LogLoss
+from .bce import BinaryCrossEntropy
+from .cce import CategoricalCrossEntropy
